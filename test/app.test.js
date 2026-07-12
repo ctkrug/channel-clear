@@ -76,6 +76,35 @@ describe('mountApp — form and list', () => {
     expect(root.querySelector('#rec-channel').textContent).toBe('CH 11');
     expect(chart.last.recommendation.channel).toBe(11);
   });
+
+  it('announces a wide-open channel when the recommendation is fully clear', () => {
+    addNetwork(root, 'A', 1); // leaves 11 with a zero overlap score
+    expect(root.querySelector('#recommendation').dataset.state).toBe('clear');
+    expect(root.querySelector('#rec-detail').textContent).toMatch(/wide open/i);
+  });
+
+  it('reports the overlap score when no channel is fully clear', () => {
+    // Crowd 1/6/11 so every candidate carries some congestion.
+    addNetwork(root, 'A', 1);
+    addNetwork(root, 'B', 6);
+    addNetwork(root, 'C', 11);
+    expect(root.querySelector('#recommendation').dataset.state).toBe('busy');
+    expect(root.querySelector('#rec-detail').textContent).toMatch(/overlap score/i);
+  });
+
+  it('escapes HTML in a network name so a crafted SSID cannot inject markup', () => {
+    addNetwork(root, '<img src=x onerror=alert(1)>', 6);
+    const item = root.querySelector('.net-item');
+    // Rendered as text, not a live element.
+    expect(item.querySelector('img')).toBeNull();
+    expect(item.innerHTML).toContain('&lt;img');
+    expect(item.querySelector('.net-name').textContent).toBe('<img src=x onerror=alert(1)>');
+  });
+
+  it('keeps a unicode/emoji SSID intact through add and render', () => {
+    addNetwork(root, 'café 📶', 6);
+    expect(root.querySelector('.net-name').textContent).toBe('café 📶');
+  });
 });
 
 describe('mountApp — validation', () => {
