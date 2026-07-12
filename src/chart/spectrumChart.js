@@ -142,6 +142,8 @@ export function createSpectrumChart(canvas, options = {}) {
     ctx.fillStyle = bg;
     ctx.fillRect(0, 0, cssWidth, cssHeight);
 
+    if (!latest.freqRange) return; // nothing to plot until first setState
+
     drawGrid(ctx, cssWidth, cssHeight, latest.band, latest.freqRange);
 
     if (curves.size === 0 && latest.networks.length === 0) {
