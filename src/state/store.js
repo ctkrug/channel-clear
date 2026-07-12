@@ -58,11 +58,6 @@ export function createStore(initialNetworks = []) {
       if (networks.length !== before) emit();
     },
 
-    replaceAll(entries) {
-      networks = entries.slice(0, MAX_NETWORKS).map(normalize);
-      emit();
-    },
-
     clear() {
       if (networks.length === 0) return;
       networks = [];

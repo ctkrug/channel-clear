@@ -76,15 +76,6 @@ describe('createStore', () => {
     expect(store.getNetworks()).toHaveLength(1);
   });
 
-  it('replaceAll swaps the whole list and notifies', () => {
-    const store = createStore([{ name: 'Old', channel: 1 }]);
-    const listener = vi.fn();
-    store.subscribe(listener);
-    store.replaceAll([{ name: 'New', channel: 6 }, { name: 'New2', channel: 36 }]);
-    expect(store.getNetworks().map((n) => n.name)).toEqual(['New', 'New2']);
-    expect(listener).toHaveBeenCalledTimes(1);
-  });
-
   it('clear empties the list and notifies, but is a no-op when already empty', () => {
     const store = createStore([{ name: 'A', channel: 1 }]);
     const listener = vi.fn();
@@ -119,11 +110,5 @@ describe('createStore — input limits', () => {
     expect(store.add({ name: 'one-too-many', channel: 6 })).toBeNull();
     expect(store.getNetworks()).toHaveLength(MAX_NETWORKS);
     expect(listener).not.toHaveBeenCalled();
-  });
-
-  it('caps replaceAll to the maximum as well', () => {
-    const store = createStore();
-    store.replaceAll(Array.from({ length: MAX_NETWORKS + 10 }, () => ({ name: 'n', channel: 1 })));
-    expect(store.getNetworks()).toHaveLength(MAX_NETWORKS);
   });
 });

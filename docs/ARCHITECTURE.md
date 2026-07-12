@@ -38,7 +38,7 @@ never disagree.
 ### `src/limits.js` — input guardrails
 Shared caps applied by the store so no entry path can build a pathological list: `MAX_SSID_LENGTH`
 (32, the 802.11 SSID max — names are truncated to it) and `MAX_NETWORKS` (128 — the list is bounded
-on initial load, `add`, and `replaceAll`). Keeps a crafted share link or hand-edited storage from
+on initial load and on every `add`). Keeps a crafted share link or hand-edited storage from
 flooding the render loop.
 
 ### `src/wifi/` — the domain (pure, no DOM)
