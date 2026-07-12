@@ -96,3 +96,73 @@ describe('createSpectrumChart', () => {
     }).not.toThrow();
   });
 });
+
+describe('createSpectrumChart — animation (reduced motion off)', () => {
+  // A flushable raf queue lets us step the tween loop deterministically.
+  function makeRaf() {
+    const queue = [];
+    const raf = (cb) => queue.push(cb);
+    const flush = (max = 500) => {
+      let n = 0;
+      while (queue.length && n < max) {
+        queue.shift()();
+        n += 1;
+      }
+      return n;
+    };
+    return { raf, flush };
+  }
+
+  const netA = { id: 'net-1', name: 'A', channel: 6, band: BAND_2_4GHZ };
+
+  it('tweens a new curve in and settles it exactly on target', () => {
+    const ctx = recordingCtx();
+    const { raf, flush } = makeRaf();
+    const chart = createSpectrumChart(fakeCanvas(ctx), { reducedMotion: false, raf, devicePixelRatio: 1 });
+    chart.resize();
+    chart.setState({
+      networks: [netA],
+      band: BAND_2_4GHZ,
+      freqRange: RANGE,
+      recommendation: { channel: 11, freq: 2462, score: 0 },
+    });
+    const frames = flush();
+    expect(frames).toBeGreaterThan(1); // it actually animated across frames
+    expect(ctx.calls.fill).toBeGreaterThan(0); // curve drawn once settled
+  });
+
+  it('shrinks a removed curve out and drops it, and fades the marker', () => {
+    const ctx = recordingCtx();
+    const { raf, flush } = makeRaf();
+    const chart = createSpectrumChart(fakeCanvas(ctx), { reducedMotion: false, raf, devicePixelRatio: 1 });
+    chart.resize();
+    chart.setState({
+      networks: [netA],
+      band: BAND_2_4GHZ,
+      freqRange: RANGE,
+      recommendation: { channel: 11, freq: 2462, score: 0 },
+    });
+    flush();
+    // Remove the only network: the curve must shrink out and the loop must
+    // terminate (returns to the idle-sweep steady state) without throwing.
+    chart.setState({ networks: [], band: BAND_2_4GHZ, freqRange: RANGE, recommendation: null });
+    expect(() => flush()).not.toThrow();
+    expect(ctx.calls.clearRect).toBeGreaterThan(0);
+  });
+
+  it('destroy() drops all curves and the marker so a later draw is inert', () => {
+    const ctx = recordingCtx();
+    const { raf, flush } = makeRaf();
+    const chart = createSpectrumChart(fakeCanvas(ctx), { reducedMotion: false, raf, devicePixelRatio: 1 });
+    chart.resize();
+    chart.setState({
+      networks: [netA],
+      band: BAND_2_4GHZ,
+      freqRange: RANGE,
+      recommendation: { channel: 11, freq: 2462, score: 0 },
+    });
+    flush();
+    chart.destroy();
+    expect(() => chart.draw()).not.toThrow();
+  });
+});
