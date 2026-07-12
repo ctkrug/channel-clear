@@ -399,6 +399,19 @@ button:focus-visible {
   background: rgba(255, 92, 92, 0.12);
 }
 
+/* On touch devices the 30px icon button is below the 44px tap-target floor;
+   grow the hit area (and the row it lives in) only where a coarse pointer is
+   in use, keeping the desktop layout compact. */
+@media (pointer: coarse) {
+  .net-remove {
+    width: 44px;
+    height: 44px;
+  }
+  .band-toggle button {
+    min-height: 44px;
+  }
+}
+
 .list-empty {
   margin: -6px 0 0;
   color: var(--text-muted);
