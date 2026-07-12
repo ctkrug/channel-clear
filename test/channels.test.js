@@ -17,6 +17,13 @@ describe('bandForChannel', () => {
     expect(bandForChannel(36)).toBe(BAND_5GHZ);
     expect(bandForChannel(161)).toBe(BAND_5GHZ);
   });
+
+  it('treats any non-2.4GHz channel as 5GHz (the fallback band)', () => {
+    // bandForChannel is a two-way split; unknown numbers land in 5GHz, where
+    // centerFrequency is the gate that actually rejects them.
+    expect(bandForChannel(999)).toBe(BAND_5GHZ);
+    expect(() => centerFrequency(BAND_5GHZ, 999)).toThrow(RangeError);
+  });
 });
 
 describe('centerFrequency', () => {

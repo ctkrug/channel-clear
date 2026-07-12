@@ -76,4 +76,13 @@ describe('leastCongestedChannel', () => {
     const result = leastCongestedChannel(BAND_2_4GHZ, [1, 6, 11], networks);
     expect(result.score).toBe(1);
   });
+
+  it('avoids only the occupied 5GHz channels, which never bleed into neighbors', () => {
+    // 36 and 40 are taken; since 5GHz 20MHz channels do not overlap, any other
+    // channel is fully clear and 44 (lowest free) should win.
+    const networks = [{ channel: 36 }, { channel: 40 }];
+    const result = leastCongestedChannel(BAND_5GHZ, [36, 40, 44, 48], networks);
+    expect(result.channel).toBe(44);
+    expect(result.score).toBe(0);
+  });
 });
