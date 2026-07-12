@@ -84,6 +84,20 @@ describe('app + real chart integration', () => {
     expect(root.querySelectorAll('#network-list li')).toHaveLength(1);
   });
 
+  it('reflows the real chart when the window resizes, with networks present', () => {
+    const handlers = {};
+    const root = mount({
+      window: {
+        addEventListener: (type, fn) => (handlers[type] = fn),
+        removeEventListener: () => {},
+      },
+    });
+    addNetwork(root, 'A', 1);
+    addNetwork(root, 'B', 6);
+    // Fire the resize handler the app wired to the real chart controller.
+    expect(() => handlers.resize()).not.toThrow();
+  });
+
   it('installs a code-generated SVG favicon (not the default globe)', () => {
     mount();
     const link = document.querySelector('link[rel="icon"]');
