@@ -77,10 +77,10 @@ npm run build    # static build to site/ (base-path relative, subpath-safe)
 
 ## Project docs
 
-- [`docs/VISION.md`](docs/VISION.md) — the problem and the design decisions
-- [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) — the code map and data flow
-- [`docs/DESIGN.md`](docs/DESIGN.md) — the visual direction and tokens
-- [`docs/BACKLOG.md`](docs/BACKLOG.md) — the story breakdown
+- [`docs/VISION.md`](docs/VISION.md): the problem and the design decisions
+- [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md): the code map and data flow
+- [`docs/DESIGN.md`](docs/DESIGN.md): the visual direction and tokens
+- [`docs/BACKLOG.md`](docs/BACKLOG.md): the story breakdown
 
 ## License
 
