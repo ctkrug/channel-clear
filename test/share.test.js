@@ -47,6 +47,17 @@ describe('decodeNetworks boundaries', () => {
   it('drops pairs with malformed percent-encoding', () => {
     expect(decodeNetworks('%E0%A4%A.6')).toEqual([]);
   });
+
+  it('drops a bare token with no field separator', () => {
+    expect(decodeNetworks('justaname')).toEqual([]);
+  });
+
+  it('keeps only the valid pairs in a mixed, partly-garbage payload', () => {
+    // A hand-mangled share URL: good pair, no-separator junk, bad channel.
+    expect(decodeNetworks('Good.6~junk~Bad.4000')).toEqual([
+      { name: 'Good', channel: 6, band: BAND_2_4GHZ },
+    ]);
+  });
 });
 
 describe('URL helpers', () => {
