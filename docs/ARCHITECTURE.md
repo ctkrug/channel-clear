@@ -11,6 +11,7 @@ npm install
 npm run dev     # local dev server (Vite)
 npm test        # Vitest — pure logic + jsdom UI tests
 npm run lint    # ESLint (flat config)
+npm run coverage # Vitest with v8 coverage (src/**, main.js excluded)
 npm run build   # static bundle into dist/ (base: './' — subpath-safe)
 ```
 
@@ -34,6 +35,12 @@ never disagree.
 
 ## Modules
 
+### `src/limits.js` — input guardrails
+Shared caps applied by the store so no entry path can build a pathological list: `MAX_SSID_LENGTH`
+(32, the 802.11 SSID max — names are truncated to it) and `MAX_NETWORKS` (128 — the list is bounded
+on initial load, `add`, and `replaceAll`). Keeps a crafted share link or hand-edited storage from
+flooding the render loop.
+
 ### `src/wifi/` — the domain (pure, no DOM)
 - **`channels.js`** — channel↔frequency tables for 2.4 GHz (1–13) and non-DFS 5 GHz
   (36/40/44/48/149/153/157/161/165), band lookups, channel width. Source of truth for what is
@@ -44,7 +51,8 @@ never disagree.
 
 ### `src/state/` — app state (pure, injectable I/O)
 - **`store.js`** — `createStore()`: observable list of networks across both bands. Derives band
-  from channel, assigns unique ids (duplicate SSIDs stay distinct), notifies subscribers.
+  from channel, assigns unique ids (duplicate SSIDs stay distinct), notifies subscribers, and
+  enforces the `src/limits.js` caps (name truncation + list size, `add` returns `null` when full).
 - **`persistence.js`** — localStorage save/load of `{name, channel}` under a versioned key;
   validates on load and drops unknown/stale entries. Storage is injectable for tests.
 - **`share.js`** — encode/decode the network list to a URL param (`?n=name.channel~…`), escaping
@@ -74,7 +82,11 @@ never disagree.
 
 ## Testing approach
 - Domain + state modules are tested as pure functions (happy path + boundaries: empty, malformed,
-  unknown channels, duplicates).
-- The chart controller is tested with a recording canvas context and injected raf/dpr.
+  unknown channels, duplicates, input caps).
+- The overlap math also has **property-based tests** (fast-check) asserting invariants across every
+  channel pair: bounded `[0,1]` interference, co-channel = 1, band symmetry/isolation, score
+  monotonicity, and least-congested = the tie-low global minimum.
+- The chart controller is tested with a recording canvas context and injected raf/dpr, including a
+  flushable raf that steps the tween loop deterministically.
 - `app.js` is tested in jsdom with a fake chart + memory storage, asserting observable behavior
   (list contents, error visibility, recommendation text, band preservation, share restore).
