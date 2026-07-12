@@ -1,0 +1,21 @@
+/* Placeholder styling for the scaffold. Full visual direction lands in the
+   build phase per docs/DESIGN.md. */
+body {
+  margin: 0;
+  font-family: system-ui, sans-serif;
+  background: #111;
+  color: #eee;
+}
+
+#app {
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 2rem 1rem;
+}
+
+canvas {
+  width: 100%;
+  height: auto;
+  background: #1a1a1a;
+  border-radius: 8px;
+}
