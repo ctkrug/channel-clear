@@ -1,4 +1,5 @@
 import { bandForChannel } from '../wifi/channels.js';
+import { MAX_NETWORKS, MAX_SSID_LENGTH } from '../limits.js';
 
 // In-memory store of the neighboring networks the user has entered. Holds
 // every network across both bands; the UI decides which band to display.
@@ -20,14 +21,14 @@ function normalize({ name, channel }) {
   const ch = Number(channel);
   return {
     id: nextId(),
-    name: String(name),
+    name: String(name).slice(0, MAX_SSID_LENGTH),
     channel: ch,
     band: bandForChannel(ch),
   };
 }
 
 export function createStore(initialNetworks = []) {
-  let networks = initialNetworks.map(normalize);
+  let networks = initialNetworks.slice(0, MAX_NETWORKS).map(normalize);
   const listeners = new Set();
 
   function emit() {
@@ -44,6 +45,7 @@ export function createStore(initialNetworks = []) {
     },
 
     add(entry) {
+      if (networks.length >= MAX_NETWORKS) return null;
       const network = normalize(entry);
       networks = [...networks, network];
       emit();
@@ -57,7 +59,7 @@ export function createStore(initialNetworks = []) {
     },
 
     replaceAll(entries) {
-      networks = entries.map(normalize);
+      networks = entries.slice(0, MAX_NETWORKS).map(normalize);
       emit();
     },
 
