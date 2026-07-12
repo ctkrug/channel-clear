@@ -39,13 +39,10 @@ export function interferenceBetween(candidateBand, candidateChannel, network) {
   const networkCenter = centerFrequency(networkBand, network.channel);
   const width = CHANNEL_WIDTH_MHZ[candidateBand];
 
-  const halfWidth = width / 2;
-  const distance = Math.abs(candidateCenter - networkCenter);
-  const falloffEdge = width;
-  if (distance >= falloffEdge) return 0;
-  if (distance <= halfWidth) return 1;
-  const t = (distance - halfWidth) / (falloffEdge - halfWidth);
-  return 0.5 * (1 + Math.cos(t * Math.PI));
+  // Peak overlap of the two equal-width curves is exactly the energy one curve
+  // contributes at the other's center — reuse the single curve model so the two
+  // can never drift apart.
+  return energyAt(candidateCenter, networkCenter, width);
 }
 
 // Total congestion score for a candidate channel: the sum of interference
