@@ -16,9 +16,15 @@ const VALID_CHANNELS = new Set([
   ...channelsForBand('5GHz'),
 ]);
 
+// encodeURIComponent leaves `.` and `~` unescaped (they're URL-unreserved), so
+// escape them explicitly to keep them from colliding with our separators.
+function encodeName(name) {
+  return encodeURIComponent(name).replace(/\./g, '%2E').replace(/~/g, '%7E');
+}
+
 export function encodeNetworks(networks) {
   return networks
-    .map((n) => `${encodeURIComponent(n.name)}${FIELD_SEP}${n.channel}`)
+    .map((n) => `${encodeName(n.name)}${FIELD_SEP}${n.channel}`)
     .join(PAIR_SEP);
 }
 
