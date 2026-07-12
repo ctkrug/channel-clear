@@ -64,4 +64,32 @@ describe('loadNetworks boundaries', () => {
   it('returns an empty array when storage is unavailable', () => {
     expect(loadNetworks(null)).toEqual([]);
   });
+
+  it('returns an empty array when getItem itself throws (blocked storage)', () => {
+    const throwing = {
+      getItem() {
+        throw new Error('SecurityError');
+      },
+      setItem() {},
+      removeItem() {},
+    };
+    expect(loadNetworks(throwing)).toEqual([]);
+  });
+});
+
+describe('saveNetworks resilience', () => {
+  it('is a no-op when storage is unavailable', () => {
+    expect(() => saveNetworks([{ name: 'A', channel: 6 }], null)).not.toThrow();
+  });
+
+  it('swallows a quota / private-mode setItem failure without throwing', () => {
+    const throwing = {
+      getItem: () => null,
+      setItem() {
+        throw new Error('QuotaExceededError');
+      },
+      removeItem() {},
+    };
+    expect(() => saveNetworks([{ name: 'A', channel: 6 }], throwing)).not.toThrow();
+  });
 });
