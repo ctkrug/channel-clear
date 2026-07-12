@@ -277,4 +277,16 @@ describe('mountApp — window wiring', () => {
     app.destroy();
     expect(removed).toContain('resize');
   });
+
+  it('falls back to the ambient location/window when none are injected', () => {
+    document.body.innerHTML = '<div id="app"></div>';
+    // No location or window deps: exercises the safeLocation() and default
+    // window paths against jsdom's real globals.
+    expect(() =>
+      mountApp(document.querySelector('#app'), {
+        chart: fakeChart(),
+        storage: memoryStorage(),
+      })
+    ).not.toThrow();
+  });
 });

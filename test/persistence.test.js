@@ -92,4 +92,11 @@ describe('saveNetworks resilience', () => {
     };
     expect(() => saveNetworks([{ name: 'A', channel: 6 }], throwing)).not.toThrow();
   });
+
+  it('defaults to the ambient localStorage when no storage is injected', () => {
+    localStorage.clear();
+    saveNetworks([{ name: 'Def', channel: 6 }]);
+    expect(loadNetworks()).toEqual([{ name: 'Def', channel: 6, band: BAND_2_4GHZ }]);
+    localStorage.clear();
+  });
 });
