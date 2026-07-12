@@ -174,4 +174,66 @@ describe('mountApp — persistence and share', () => {
     expect(writeText).toHaveBeenCalledOnce();
     expect(writeText.mock.calls[0][0]).toContain('?n=');
   });
+
+  it('shows "Copy failed" and re-enables the button when the clipboard rejects', async () => {
+    vi.useFakeTimers();
+    try {
+      const writeText = vi.fn().mockRejectedValue(new Error('denied'));
+      const { root } = setup({ clipboard: { writeText } });
+      addNetwork(root, 'A', 6);
+      const btn = root.querySelector('#copy-link');
+      btn.click();
+      await vi.waitFor(() => expect(btn.textContent).toBe('Copy failed'));
+      expect(btn.disabled).toBe(true);
+      vi.advanceTimersByTime(1400);
+      expect(btn.textContent).toBe('Copy link');
+      expect(btn.disabled).toBe(false);
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
+  it('reports "Copy failed" when no clipboard API is available at all', async () => {
+    const { root } = setup({ clipboard: null });
+    addNetwork(root, 'A', 6);
+    const btn = root.querySelector('#copy-link');
+    btn.click();
+    await vi.waitFor(() => expect(btn.textContent).toBe('Copy failed'));
+  });
+});
+
+describe('mountApp — window wiring', () => {
+  it('resizes the chart when the window fires a resize event', () => {
+    const handlers = {};
+    const chart = fakeChart();
+    document.body.innerHTML = '<div id="app"></div>';
+    mountApp(document.querySelector('#app'), {
+      chart,
+      storage: memoryStorage(),
+      location: { search: '', origin: 'https://x.test', pathname: '/channel-clear/' },
+      window: {
+        addEventListener: (type, fn) => (handlers[type] = fn),
+        removeEventListener: () => {},
+      },
+    });
+    chart.resize.mockClear();
+    handlers.resize();
+    expect(chart.resize).toHaveBeenCalledOnce();
+  });
+
+  it('removes its resize listener on destroy', () => {
+    const removed = [];
+    document.body.innerHTML = '<div id="app"></div>';
+    const app = mountApp(document.querySelector('#app'), {
+      chart: fakeChart(),
+      storage: memoryStorage(),
+      location: { search: '', origin: 'https://x.test', pathname: '/channel-clear/' },
+      window: {
+        addEventListener: () => {},
+        removeEventListener: (type) => removed.push(type),
+      },
+    });
+    app.destroy();
+    expect(removed).toContain('resize');
+  });
 });
