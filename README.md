@@ -1,5 +1,7 @@
 # Channel Clear
 
+[![CI](https://github.com/ctkrug/channel-clear/actions/workflows/ci.yml/badge.svg)](https://github.com/ctkrug/channel-clear/actions/workflows/ci.yml)
+
 Find the least-congested Wi-Fi channel for your router — no login, no app, no guessing.
 
 Type in the networks your phone already sees (name + channel) and Channel Clear draws a live
