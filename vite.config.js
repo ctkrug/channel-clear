@@ -5,7 +5,9 @@ import { defineConfig } from 'vite';
 export default defineConfig({
   base: './',
   build: {
-    outDir: 'dist',
+    // Built static site is committed as site/ and deployed under a subpath.
+    outDir: 'site',
+    emptyOutDir: true,
   },
   test: {
     environment: 'jsdom',

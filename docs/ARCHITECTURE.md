@@ -12,7 +12,7 @@ npm run dev     # local dev server (Vite)
 npm test        # Vitest — pure logic + jsdom UI tests
 npm run lint    # ESLint (flat config)
 npm run coverage # Vitest with v8 coverage (src/**, main.js excluded)
-npm run build   # static bundle into dist/ (base: './' — subpath-safe)
+npm run build   # static bundle into site/ (base: './' — subpath-safe)
 ```
 
 The build is static and base-path-relative, so it can be hosted under a subpath
