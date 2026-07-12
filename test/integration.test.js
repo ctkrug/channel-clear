@@ -1,4 +1,4 @@
-import { afterEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, describe, expect, it } from 'vitest';
 import { mountApp } from '../src/ui/app.js';
 
 // End-to-end wiring check: mount the app with the REAL spectrum-chart
