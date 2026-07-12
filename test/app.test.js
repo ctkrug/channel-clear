@@ -142,6 +142,18 @@ describe('mountApp — remove and band', () => {
     expect(values).toEqual([36, 40, 44, 48, 149, 153, 157, 161, 165]);
   });
 
+  it('clears every network and returns the recommendation to its empty state', () => {
+    const { root, chart } = setup();
+    addNetwork(root, 'A', 1);
+    addNetwork(root, 'B', 6);
+    expect(root.querySelectorAll('#network-list li')).toHaveLength(2);
+    root.querySelector('#clear-all').click();
+    expect(root.querySelectorAll('#network-list li')).toHaveLength(0);
+    expect(root.querySelector('#recommendation').dataset.state).toBe('empty');
+    expect(chart.last.networks).toHaveLength(0);
+    expect(chart.last.recommendation).toBeNull();
+  });
+
   it('preserves other-band networks in state when switching bands', () => {
     const { root, chart } = setup();
     addNetwork(root, 'TwoFour', 6);
