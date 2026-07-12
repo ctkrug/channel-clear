@@ -151,7 +151,11 @@ export function mountApp(root, deps = {}) {
       els.channel.focus();
       return;
     }
-    store.add({ name, channel });
+    const added = store.add({ name, channel });
+    if (!added) {
+      showError('Network list is full — remove one to add another.', els.channel);
+      return;
+    }
     els.name.value = '';
     els.name.focus();
   }
@@ -219,7 +223,7 @@ function template() {
           <form id="add-network-form" novalidate>
             <label class="field">
               <span class="field-label">Network name</span>
-              <input id="network-name" type="text" autocomplete="off" placeholder="e.g. Apt 4B" />
+              <input id="network-name" type="text" autocomplete="off" maxlength="32" placeholder="e.g. Apt 4B" />
             </label>
             <div class="field-row">
               <label class="field">

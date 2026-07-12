@@ -1,5 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { mountApp } from '../src/ui/app.js';
+import { MAX_NETWORKS } from '../src/limits.js';
 
 // A fake spectrum chart: records the last state it was told to render so tests
 // can assert on the data flow without a real canvas backend.
@@ -89,6 +90,10 @@ describe('mountApp — validation', () => {
     expect(root.querySelectorAll('#network-list li')).toHaveLength(0);
   });
 
+  it('caps the network-name input at the 32-char SSID maximum', () => {
+    expect(root.querySelector('#network-name').getAttribute('maxlength')).toBe('32');
+  });
+
   it('shows an inline error when no channel is selected', () => {
     root.querySelector('#network-name').value = 'A';
     root.querySelector('#network-channel').value = '';
@@ -97,6 +102,19 @@ describe('mountApp — validation', () => {
     );
     expect(root.querySelector('#form-error').hidden).toBe(false);
     expect(root.querySelectorAll('#network-list li')).toHaveLength(0);
+  });
+
+  it('shows a full-list error instead of silently dropping the add at the cap', () => {
+    const search =
+      '?n=' + Array.from({ length: MAX_NETWORKS }, (_, i) => `n${i}.6`).join('~');
+    const { root } = setup({
+      location: { search, origin: 'https://x.test', pathname: '/channel-clear/' },
+    });
+    expect(root.querySelectorAll('#network-list li')).toHaveLength(MAX_NETWORKS);
+    addNetwork(root, 'over', 6);
+    expect(root.querySelector('#form-error').hidden).toBe(false);
+    expect(root.querySelector('#form-error').textContent).toContain('full');
+    expect(root.querySelectorAll('#network-list li')).toHaveLength(MAX_NETWORKS);
   });
 });
 
