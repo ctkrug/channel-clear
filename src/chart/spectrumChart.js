@@ -1,43 +1,236 @@
 import { sampleCurve } from '../wifi/overlap.js';
+import { CURVE_COLORS, THEME } from './theme.js';
+import { drawCurve, drawGrid, drawMarker, drawSweep, freqToX } from './render.js';
 
-// Renders the live spectrum chart: one filled curve per network plus a
-// marker for the recommended clear channel. Kept framework-free — this
-// canvas is the product, so it's drawn directly rather than through a
-// charting library.
-export function drawSpectrum(ctx, width, height, { networks, freqRange, best, colors }) {
-  ctx.clearRect(0, 0, width, height);
+// Controller that turns app state into an animated blueprint spectrum. It owns
+// the canvas' devicePixelRatio backing store (crisp on retina, recomputed on
+// resize) and a small rAF tween loop so curves grow in and the recommendation
+// marker slides rather than jump-cutting — the "gap closing in" motion from
+// docs/DESIGN.md. Framework-free; the canvas is the product.
 
-  const toX = (freq) =>
-    ((freq - freqRange.min) / (freqRange.max - freqRange.min)) * width;
-  const toY = (energy) => height - energy * height;
+const FRAME_STEP = 1 / 12; // approach factor per frame toward animation targets
 
-  networks.forEach((network, i) => {
-    const points = sampleCurve(network, freqRange);
-    if (points.length === 0) return;
+export function createSpectrumChart(canvas, options = {}) {
+  const reducedMotion = options.reducedMotion ?? prefersReducedMotion();
+  const raf = options.raf ?? defaultRaf;
 
-    ctx.beginPath();
-    ctx.moveTo(toX(points[0].freq), height);
-    points.forEach((p) => ctx.lineTo(toX(p.freq), toY(p.energy)));
-    ctx.lineTo(toX(points[points.length - 1].freq), height);
-    ctx.closePath();
+  const ctx = canvas.getContext('2d');
+  let cssWidth = 0;
+  let cssHeight = 0;
 
-    const color = colors?.[i % (colors?.length || 1)] ?? '#4f8fff';
-    ctx.fillStyle = color;
-    ctx.globalAlpha = 0.35;
-    ctx.fill();
-    ctx.globalAlpha = 1;
-    ctx.strokeStyle = color;
-    ctx.lineWidth = 2;
-    ctx.stroke();
-  });
+  // Per-network animation records keyed by id: scale eases 0->1 on add and
+  // 1->0 on remove (then the record is dropped). Removing a curve therefore
+  // shrinks only its own trace, leaving the others untouched.
+  const curves = new Map();
+  let marker = null; // { x, targetX, alpha, label }
+  let latest = { networks: [], band: null, freqRange: null, recommendation: null };
+  let sweepPhase = 0;
+  let animating = false;
 
-  if (best) {
-    const x = toX(best.freqMHz);
-    ctx.strokeStyle = '#22c55e';
-    ctx.lineWidth = 3;
-    ctx.beginPath();
-    ctx.moveTo(x, height);
-    ctx.lineTo(x, 0);
-    ctx.stroke();
+  function resize() {
+    const rect = canvas.getBoundingClientRect();
+    cssWidth = rect.width || canvas.clientWidth || 600;
+    cssHeight = rect.height || canvas.clientHeight || 320;
+    const dpr = options.devicePixelRatio ?? globalDpr();
+    canvas.width = Math.round(cssWidth * dpr);
+    canvas.height = Math.round(cssHeight * dpr);
+    if (ctx) ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    draw();
   }
+
+  function setState(state) {
+    latest = state;
+    const seen = new Set();
+
+    for (const network of state.networks) {
+      seen.add(network.id);
+      const points = buildPoints(network, state.freqRange, cssWidth);
+      const existing = curves.get(network.id);
+      if (existing) {
+        existing.points = points;
+        existing.target = 1;
+        existing.removing = false;
+      } else {
+        curves.set(network.id, {
+          points,
+          color: colorFor(curves.size),
+          scale: reducedMotion ? 1 : 0,
+          target: 1,
+          removing: false,
+        });
+      }
+    }
+    // Mark departed networks for shrink-out.
+    for (const [id, rec] of curves) {
+      if (!seen.has(id)) {
+        rec.target = 0;
+        rec.removing = true;
+      }
+    }
+
+    // Recommendation marker.
+    if (state.recommendation && state.networks.length > 0) {
+      const x = freqToX(state.recommendation.freq, state.freqRange, cssWidth);
+      const label = `CH ${state.recommendation.channel}`;
+      if (marker) {
+        marker.targetX = x;
+        marker.label = label;
+      } else {
+        marker = { x, targetX: x, alpha: reducedMotion ? 1 : 0, label };
+      }
+      marker.targetAlpha = 1;
+    } else if (marker) {
+      marker.targetAlpha = 0;
+    }
+
+    if (reducedMotion) settleImmediately();
+    ensureAnimating();
+  }
+
+  function settleImmediately() {
+    for (const [id, rec] of curves) {
+      rec.scale = rec.target;
+      if (rec.removing) curves.delete(id);
+    }
+    if (marker) {
+      marker.x = marker.targetX;
+      marker.alpha = marker.targetAlpha ?? marker.alpha;
+      if (marker.alpha === 0) marker = null;
+    }
+  }
+
+  // Advance every animation one step; returns true while anything is still
+  // moving (or the empty-state sweep needs to keep drifting).
+  function step() {
+    let active = false;
+    for (const [id, rec] of curves) {
+      rec.scale += (rec.target - rec.scale) * FRAME_STEP;
+      if (Math.abs(rec.target - rec.scale) < 0.005) {
+        rec.scale = rec.target;
+        if (rec.removing) curves.delete(id);
+      } else {
+        active = true;
+      }
+    }
+    if (marker) {
+      marker.x += (marker.targetX - marker.x) * FRAME_STEP;
+      const ta = marker.targetAlpha ?? 1;
+      marker.alpha += (ta - marker.alpha) * FRAME_STEP;
+      if (Math.abs(marker.targetX - marker.x) > 0.5 || Math.abs(ta - marker.alpha) > 0.01) {
+        active = true;
+      } else {
+        marker.x = marker.targetX;
+        marker.alpha = ta;
+        if (ta === 0) marker = null;
+      }
+    }
+    if (latest.networks.length === 0) {
+      sweepPhase = (sweepPhase + 0.006) % 1;
+      active = true; // keep the idle sweep drifting
+    }
+    return active;
+  }
+
+  function draw() {
+    if (!ctx || cssWidth === 0) return;
+    ctx.clearRect(0, 0, cssWidth, cssHeight);
+
+    // Panel backdrop with a faint vertical gradient for depth.
+    const bg = ctx.createLinearGradient(0, 0, 0, cssHeight);
+    bg.addColorStop(0, THEME.surface2);
+    bg.addColorStop(1, THEME.bg);
+    ctx.fillStyle = bg;
+    ctx.fillRect(0, 0, cssWidth, cssHeight);
+
+    drawGrid(ctx, cssWidth, cssHeight, latest.band, latest.freqRange);
+
+    if (curves.size === 0 && latest.networks.length === 0) {
+      const sweepX = 40 + sweepPhase * (cssWidth - 80);
+      drawSweep(ctx, cssWidth, cssHeight, sweepX);
+      drawEmptyHint(ctx, cssWidth, cssHeight);
+      return;
+    }
+
+    for (const rec of curves.values()) {
+      drawCurve(ctx, cssHeight, rec.points, rec.color, rec.scale);
+    }
+    if (marker && marker.alpha > 0.01) {
+      drawMarker(ctx, cssWidth, cssHeight, marker.x, marker.label, marker.alpha);
+    }
+  }
+
+  function ensureAnimating() {
+    // Recompute x positions in case width changed since points were built.
+    for (const rec of curves.values()) {
+      for (const p of rec.points) p.x = freqToX(p.freq, latest.freqRange, cssWidth);
+    }
+    if (marker) marker.targetX = markerTargetX();
+    if (animating) return;
+    animating = true;
+    tick();
+  }
+
+  function markerTargetX() {
+    if (!latest.recommendation) return marker ? marker.targetX : 0;
+    return freqToX(latest.recommendation.freq, latest.freqRange, cssWidth);
+  }
+
+  function tick() {
+    const active = step();
+    draw();
+    if (active) {
+      raf(tick);
+    } else {
+      animating = false;
+    }
+  }
+
+  function colorFor(index) {
+    return CURVE_COLORS[index % CURVE_COLORS.length];
+  }
+
+  function destroy() {
+    curves.clear();
+    marker = null;
+  }
+
+  return { resize, setState, draw, destroy };
+}
+
+function buildPoints(network, freqRange, width) {
+  const samples = sampleCurve(network, freqRange, 1);
+  return samples.map((s) => ({
+    freq: s.freq,
+    energy: s.energy,
+    x: freqToX(s.freq, freqRange, width),
+  }));
+}
+
+function drawEmptyHint(ctx, width, height) {
+  ctx.save();
+  ctx.fillStyle = THEME.textMuted;
+  ctx.font = '13px ui-monospace, "SF Mono", Consolas, monospace';
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  ctx.fillText('Awaiting signal — add a network to begin', width / 2, height / 2);
+  ctx.restore();
+}
+
+function prefersReducedMotion() {
+  try {
+    return typeof matchMedia !== 'undefined'
+      ? matchMedia('(prefers-reduced-motion: reduce)').matches
+      : false;
+  } catch {
+    return false;
+  }
+}
+
+function globalDpr() {
+  return typeof devicePixelRatio !== 'undefined' ? devicePixelRatio : 1;
+}
+
+function defaultRaf(cb) {
+  if (typeof requestAnimationFrame !== 'undefined') return requestAnimationFrame(cb);
+  return setTimeout(cb, 16);
 }
