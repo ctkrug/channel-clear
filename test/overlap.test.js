@@ -17,6 +17,17 @@ describe('interferenceBetween', () => {
     expect(interferenceBetween(BAND_2_4GHZ, 11, network)).toBe(0);
   });
 
+  it('reports zero interference between each of the non-overlapping trio 1/6/11', () => {
+    // The classic US non-overlapping set: no pair should bleed into another.
+    expect(interferenceBetween(BAND_2_4GHZ, 6, { channel: 1 })).toBe(0);
+    expect(interferenceBetween(BAND_2_4GHZ, 11, { channel: 6 })).toBe(0);
+    expect(interferenceBetween(BAND_2_4GHZ, 1, { channel: 11 })).toBe(0);
+  });
+
+  it('is 1 for two networks sharing the exact same 5GHz channel', () => {
+    expect(interferenceBetween(BAND_5GHZ, 36, { channel: 36 })).toBe(1);
+  });
+
   it('is partial but nonzero for channels a few numbers apart', () => {
     const network = { channel: 6 };
     const value = interferenceBetween(BAND_2_4GHZ, 3, network);
