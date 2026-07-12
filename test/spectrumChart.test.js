@@ -169,6 +169,35 @@ describe('createSpectrumChart — animation (reduced motion off)', () => {
     expect(ctx.calls.clearRect).toBeGreaterThan(0);
   });
 
+  it('reflows curve geometry to the new width on resize (no stale x)', () => {
+    // A ctx that records the maximum x coordinate ever drawn to, so we can
+    // assert the trace spans the canvas width instead of a stale one.
+    let maxX = 0;
+    const track = (...a) => {
+      if (typeof a[0] === 'number') maxX = Math.max(maxX, a[0]);
+    };
+    const base = recordingCtx();
+    const ctx = { ...base, moveTo: track, lineTo: track };
+    const canvas = fakeCanvas(ctx);
+    canvas.getBoundingClientRect = () => ({ width: 600, height: 320 });
+    const chart = createSpectrumChart(canvas, { reducedMotion: true, raf: () => {}, devicePixelRatio: 1 });
+    chart.resize();
+    chart.setState({
+      networks: [netA],
+      band: BAND_2_4GHZ,
+      freqRange: RANGE,
+      recommendation: { channel: 11, freq: 2462, score: 0 },
+    });
+    expect(maxX).toBeGreaterThan(500); // trace reaches near the 600px right edge
+
+    // Shrink the canvas and resize: the trace must now stay within the new width.
+    maxX = 0;
+    canvas.getBoundingClientRect = () => ({ width: 300, height: 320 });
+    chart.resize();
+    expect(maxX).toBeLessThanOrEqual(300);
+    expect(maxX).toBeGreaterThan(0);
+  });
+
   it('destroy() drops all curves and the marker so a later draw is inert', () => {
     const ctx = recordingCtx();
     const { raf, flush } = makeRaf();

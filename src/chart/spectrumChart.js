@@ -35,7 +35,23 @@ export function createSpectrumChart(canvas, options = {}) {
     canvas.width = Math.round(cssWidth * dpr);
     canvas.height = Math.round(cssHeight * dpr);
     if (ctx) ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    // Reflow the plotted geometry to the new width and snap the marker there
+    // instantly — a resize should reposition, not tween.
+    reflowPoints();
+    if (marker) {
+      marker.targetX = markerTargetX();
+      marker.x = marker.targetX;
+    }
     draw();
+  }
+
+  // Recompute each sample's x for the current width (frequencies are fixed; only
+  // the pixel mapping changes when the canvas resizes).
+  function reflowPoints() {
+    if (!latest.freqRange) return;
+    for (const rec of curves.values()) {
+      for (const p of rec.points) p.x = freqToX(p.freq, latest.freqRange, cssWidth);
+    }
   }
 
   function setState(state) {
@@ -165,9 +181,7 @@ export function createSpectrumChart(canvas, options = {}) {
 
   function ensureAnimating() {
     // Recompute x positions in case width changed since points were built.
-    for (const rec of curves.values()) {
-      for (const p of rec.points) p.x = freqToX(p.freq, latest.freqRange, cssWidth);
-    }
+    reflowPoints();
     if (marker) marker.targetX = markerTargetX();
     if (animating) return;
     animating = true;
