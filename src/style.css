@@ -509,11 +509,116 @@ button:focus-visible {
 
 /* ---- Footer ---- */
 .cc-footer {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px 20px;
   color: var(--text-muted);
   font-size: 12px;
   font-family: var(--font-mono);
-  text-align: center;
   padding-top: 4px;
+  border-top: 1px solid rgba(124, 139, 161, 0.12);
+  margin-top: 4px;
+}
+
+.cc-foot-links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 18px;
+}
+
+.cc-footer a {
+  color: var(--text-muted);
+  text-decoration: none;
+  transition: color 150ms var(--ease);
+}
+
+.cc-footer a:hover,
+.cc-footer a:focus-visible {
+  color: var(--accent);
+}
+
+/* ---- Below-the-fold reference / SEO copy ---- */
+.cc-seo {
+  border-top: 1px solid rgba(61, 219, 255, 0.14);
+  background:
+    radial-gradient(900px 400px at 50% -10%, rgba(61, 219, 255, 0.06), transparent 60%),
+    var(--surface-1);
+  padding: clamp(40px, 6vw, 80px) clamp(16px, 3vw, 40px);
+}
+
+.cc-seo-inner {
+  max-width: 68ch;
+  margin: 0 auto;
+}
+
+.cc-seo h2 {
+  font-family: var(--font-mono);
+  font-size: clamp(20px, 2.6vw, 26px);
+  letter-spacing: -0.01em;
+  margin: 0 0 16px;
+}
+
+.cc-seo h3 {
+  font-family: var(--font-mono);
+  font-size: 15px;
+  color: var(--accent);
+  letter-spacing: 0.02em;
+  margin: 28px 0 6px;
+}
+
+.cc-seo p {
+  color: var(--text-muted);
+  line-height: 1.65;
+  font-size: 15px;
+  margin: 0 0 12px;
+}
+
+.cc-faq-title {
+  margin-top: 48px;
+}
+
+.cc-faq {
+  margin: 0;
+}
+
+.cc-faq dt {
+  font-family: var(--font-mono);
+  font-weight: 600;
+  color: var(--text);
+  margin-top: 20px;
+  padding-left: 14px;
+  border-left: 2px solid var(--accent);
+}
+
+.cc-faq dd {
+  margin: 8px 0 0;
+  padding-left: 14px;
+  color: var(--text-muted);
+  line-height: 1.65;
+  font-size: 15px;
+}
+
+.cc-seo-cta {
+  margin-top: 40px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  font-family: var(--font-mono);
+  font-size: 14px;
+}
+
+.cc-seo-cta a {
+  color: var(--accent);
+  text-decoration: none;
+  border-bottom: 1px solid rgba(61, 219, 255, 0.35);
+  transition: border-color 150ms var(--ease);
+}
+
+.cc-seo-cta a:hover,
+.cc-seo-cta a:focus-visible {
+  border-color: var(--accent);
 }
 
 /* ---- Responsive ---- */

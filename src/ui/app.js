@@ -259,7 +259,11 @@ function template() {
       </main>
 
       <footer class="cc-footer">
-        <span>Overlap math runs entirely in your browser — nothing leaves your device.</span>
+        <span class="cc-foot-note">Overlap math runs entirely in your browser. Nothing you type ever leaves your device.</span>
+        <nav class="cc-foot-links" aria-label="Project links">
+          <a href="https://github.com/ctkrug/channel-clear" rel="noopener">View source on GitHub</a>
+          <a href="https://apps.charliekrug.com" rel="noopener">More by Charlie Krug → apps.charliekrug.com</a>
+        </nav>
       </footer>
     </div>
   `;

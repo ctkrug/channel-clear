@@ -3,16 +3,16 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Channel Clear — find your least-congested Wi-Fi channel</title>
+    <title>Channel Clear — the Wi-Fi channel planner that shows the overlap</title>
     <meta
       name="description"
-      content="Type in the networks your phone already sees and get the least-congested Wi-Fi channel for your router, with a live spectrum chart showing the overlap math."
+      content="A free Wi-Fi channel planner: type in the networks around you and get the least-congested 2.4GHz or 5GHz channel for your router, with the overlap drawn live."
     />
     <meta name="theme-color" content="#0a0e14" />
-    <meta property="og:title" content="Channel Clear — find your least-congested Wi-Fi channel" />
+    <meta property="og:title" content="Channel Clear — the Wi-Fi channel planner that shows the overlap" />
     <meta
       property="og:description"
-      content="A live spectrum instrument: add the networks around you, see the overlap, and get the one clear channel for your router."
+      content="Type in the Wi-Fi your phone already sees and get the one clear channel for your router. A live 2.4GHz and 5GHz channel overlap calculator, no install."
     />
     <meta property="og:type" content="website" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -24,6 +24,85 @@
   </head>
   <body>
     <div id="app"></div>
+
+    <!-- Below-the-fold reference copy: how to read the tool and answers to the
+         questions people search for. Styled to match the app (see style.css). -->
+    <section class="cc-seo" aria-label="How to pick a Wi-Fi channel">
+      <div class="cc-seo-inner">
+        <h2>How to pick the clearest Wi-Fi channel</h2>
+        <p>
+          Channel Clear is a free Wi-Fi channel planner that runs entirely in your browser. Open
+          your phone's Wi-Fi settings, read the networks around you and their channels, and type
+          them in above. The chart draws how far each signal spreads across the band, then marks the
+          least-congested channel left for your own router. There is no app to install, no login,
+          and nothing you enter leaves your device.
+        </p>
+
+        <h3>Why your channel matters</h3>
+        <p>
+          On 2.4GHz there are really only three channels that do not overlap: 1, 6, and 11. When the
+          routers around you crowd onto the same channel, or onto one a few numbers away, their
+          signals bleed together and your throughput drops, which shows up as buffering video and
+          choppy calls. Moving your router to a quieter channel is often the single fix that helps
+          the most, and it takes about a minute.
+        </p>
+
+        <h3>How the overlap is calculated</h3>
+        <p>
+          Most tools just list which channels are in use. Channel Clear goes further: it models each
+          network as an energy curve the width of a real Wi-Fi channel (about 22 MHz on 2.4GHz), so
+          two routers three channels apart still register as partial interference rather than
+          "unrelated." That is what makes it a genuine 2.4GHz channel overlap calculator, and why the
+          recommendation lines up with what you would measure with a spectrum analyzer.
+        </p>
+
+        <h3>2.4GHz vs 5GHz</h3>
+        <p>
+          5GHz has far more room, and its 20 MHz channels do not overlap, so congestion there is
+          about who shares the exact same channel rather than adjacent bleed. Use the band toggle to
+          plan each band on its own; the recommendation and chart update for whichever band you are
+          looking at, and the networks you entered on the other band are kept.
+        </p>
+
+        <h2 class="cc-faq-title">Frequently asked questions</h2>
+        <dl class="cc-faq">
+          <dt>What is the best Wi-Fi channel checker?</dt>
+          <dd>
+            A useful Wi-Fi channel checker shows the reasoning, not just a verdict. Channel Clear
+            draws every neighbor's overlap curve so you can see why a channel is busy, then
+            recommends 1, 6, or 11 on 2.4GHz (the non-overlapping channels) or the quietest 5GHz
+            channel for the networks you enter.
+          </dd>
+
+          <dt>Which 2.4GHz channel is least congested?</dt>
+          <dd>
+            On 2.4GHz, stay on channel 1, 6, or 11, because they are the only channels that do not
+            overlap each other. Channel Clear's 2.4GHz channel overlap calculator scores those three
+            against the networks around you and marks the clearest one with the amber pointer.
+          </dd>
+
+          <dt>Do I need to install an app to plan my Wi-Fi channel?</dt>
+          <dd>
+            No. A browser cannot scan Wi-Fi directly, so you read the network names and channels from
+            your phone's Wi-Fi settings and type them in. That keeps the whole thing a single web
+            page with no permissions and no account.
+          </dd>
+
+          <dt>Does Channel Clear work for 5GHz?</dt>
+          <dd>
+            Yes. Switch the band toggle to 5GHz to plan the common non-DFS channels (36 to 48 and 149
+            to 165). Each band is tracked separately with its own recommendation and chart.
+          </dd>
+        </dl>
+
+        <p class="cc-seo-cta">
+          <a href="https://github.com/ctkrug/channel-clear" rel="noopener">View the source on GitHub</a>
+          <span aria-hidden="true">·</span>
+          <a href="https://apps.charliekrug.com" rel="noopener">More by Charlie Krug</a>
+        </p>
+      </div>
+    </section>
+
     <script type="module" src="./src/main.js"></script>
   </body>
 </html>
