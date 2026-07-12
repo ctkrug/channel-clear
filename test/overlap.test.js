@@ -17,9 +17,9 @@ describe('interferenceBetween', () => {
     expect(interferenceBetween(BAND_2_4GHZ, 11, network)).toBe(0);
   });
 
-  it('is partial but nonzero for channels a couple numbers apart', () => {
+  it('is partial but nonzero for channels a few numbers apart', () => {
     const network = { channel: 6 };
-    const value = interferenceBetween(BAND_2_4GHZ, 4, network);
+    const value = interferenceBetween(BAND_2_4GHZ, 3, network);
     expect(value).toBeGreaterThan(0);
     expect(value).toBeLessThan(1);
   });
