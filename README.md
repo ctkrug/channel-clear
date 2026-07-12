@@ -36,18 +36,35 @@ process is visible, not just the final answer.
 - [Vitest](https://vitest.dev/) for unit tests on the channel-overlap math
 - Zero backend — ships as a static site, deployable to any static host
 
+## How to use it
+
+1. Open your phone's Wi-Fi settings (or any Wi-Fi analyzer) and note the networks around you —
+   each one's name and channel.
+2. Pick the band (**2.4 GHz** or **5 GHz**) and add each network by name + channel. The spectrum
+   chart redraws live with every network's overlap curve.
+3. Read the **Recommended** channel at the top of the chart — the amber marker points at the
+   least-congested channel for your router on the selected band. Set your router there.
+4. **Copy link** shares your exact spectrum; your networks are also saved locally and restored on
+   reload.
+
+The 2.4 GHz and 5 GHz bands are tracked independently — switching the toggle re-scopes the chart
+and recommendation without losing what you entered on the other band.
+
 ## Status
 
-Early scaffold. See [`docs/VISION.md`](docs/VISION.md) for the plan and
-[`docs/BACKLOG.md`](docs/BACKLOG.md) for the build breakdown.
+Core experience is functional: live spectrum, per-band recommendation, validation, remove,
+persistence, and shareable links. See [`docs/VISION.md`](docs/VISION.md) for the plan,
+[`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) for the code map, and
+[`docs/BACKLOG.md`](docs/BACKLOG.md) for the story breakdown.
 
 ## Local development
 
 ```bash
 npm install
 npm run dev      # local dev server
-npm test         # run the overlap-math test suite
-npm run build    # static build to dist/
+npm test         # run the full test suite (domain math, state, chart, UI)
+npm run lint     # ESLint
+npm run build    # static build to dist/ (base-path relative — subpath-safe)
 ```
 
 ## License
