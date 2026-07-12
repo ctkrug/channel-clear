@@ -87,6 +87,25 @@ describe('createSpectrumChart', () => {
     expect(ctx.calls.fill).toBeGreaterThan(0);
   });
 
+  it('does not spin the rAF loop forever in the empty state under reduced motion', () => {
+    const queue = [];
+    const chart = createSpectrumChart(fakeCanvas(recordingCtx()), {
+      reducedMotion: true,
+      raf: (cb) => queue.push(cb),
+      devicePixelRatio: 1,
+    });
+    chart.resize();
+    chart.setState({ networks: [], band: BAND_2_4GHZ, freqRange: RANGE, recommendation: null });
+    // Drain whatever was scheduled; the loop must settle, not re-arm endlessly.
+    let n = 0;
+    while (queue.length && n < 100) {
+      queue.shift()();
+      n += 1;
+    }
+    expect(n).toBeLessThan(100);
+    expect(queue).toHaveLength(0);
+  });
+
   it('does not throw when the context is unavailable (headless)', () => {
     const canvas = fakeCanvas(null);
     const chart = createSpectrumChart(canvas, { reducedMotion: true, raf: () => {} });

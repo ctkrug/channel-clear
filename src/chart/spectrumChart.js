@@ -124,9 +124,11 @@ export function createSpectrumChart(canvas, options = {}) {
         if (ta === 0) marker = null;
       }
     }
-    if (latest.networks.length === 0) {
+    // Keep the idle placeholder sweep drifting — but not under reduced motion,
+    // where a perpetual animation is both unwelcome and a needless rAF spin.
+    if (!reducedMotion && latest.networks.length === 0) {
       sweepPhase = (sweepPhase + 0.006) % 1;
-      active = true; // keep the idle sweep drifting
+      active = true;
     }
     return active;
   }
