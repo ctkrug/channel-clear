@@ -17,7 +17,10 @@ export default [
     languageOptions: {
       globals: {
         describe: 'readonly',
+        beforeEach: 'readonly',
         it: 'readonly',
+        HTMLCanvasElement: 'readonly',
+        Event: 'readonly',
       },
     },
   },
