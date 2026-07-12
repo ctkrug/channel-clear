@@ -1,4 +1,4 @@
-import { describe, expect, it } from 'vitest';
+import { describe, it } from 'vitest';
 import fc from 'fast-check';
 import { BAND_2_4GHZ, BAND_5GHZ, channelsForBand } from '../src/wifi/channels.js';
 import {
