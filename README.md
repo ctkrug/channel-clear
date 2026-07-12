@@ -63,6 +63,7 @@ persistence, and shareable links. See [`docs/VISION.md`](docs/VISION.md) for the
 npm install
 npm run dev      # local dev server
 npm test         # run the full test suite (domain math, state, chart, UI)
+npm run coverage # test suite with v8 coverage report
 npm run lint     # ESLint
 npm run build    # static build to dist/ (base-path relative — subpath-safe)
 ```
